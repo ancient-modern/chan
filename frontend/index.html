@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>缠论K线分析系统</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部导航 -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <span class="logo-icon">📊</span>
+                    缠论K线分析系统
+                </h1>
+                <nav class="nav">
+                    <a href="#" class="nav-link active" data-tab="analysis">技术分析</a>
+                    <a href="#" class="nav-link" data-tab="patterns">模式生成</a>
+                    <a href="#" class="nav-link" data-tab="settings">系统设置</a>
+                    <a href="/docs" class="nav-link" target="_blank">API文档</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- 主要内容区域 -->
+        <main class="main">
+            <!-- 技术分析面板 -->
+            <div id="analysis-panel" class="panel active">
+                <!-- 控制面板 -->
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h2>分析参数</h2>
+                        <button id="analyze-btn" class="btn btn-primary">
+                            <span class="btn-icon">🔍</span>
+                            开始分析
+                        </button>
+                    </div>
+                    
+                    <div class="control-grid">
+                        <div class="control-group">
+                            <label for="kline-count">K线数量</label>
+                            <input type="number" id="kline-count" value="100" min="50" max="1000" step="10">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="start-price">起始价格</label>
+                            <input type="number" id="start-price" value="100" min="1" step="0.01">
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="volatility">波动率</label>
+                            <input type="range" id="volatility" value="0.02" min="0.001" max="0.1" step="0.001">
+                            <span class="range-value">2.0%</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="trend-bias">趋势偏向</label>
+                            <input type="range" id="trend-bias" value="0" min="-0.05" max="0.05" step="0.001">
+                            <span class="range-value">0.0%</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="fenxing-strength">分型强度</label>
+                            <input type="range" id="fenxing-strength" value="0.5" min="0.1" max="1.0" step="0.1">
+                            <span class="range-value">0.5</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label for="time-interval">时间周期</label>
+                            <select id="time-interval">
+                                <option value="1m">1分钟</option>
+                                <option value="5m">5分钟</option>
+                                <option value="15m">15分钟</option>
+                                <option value="30m">30分钟</option>
+                                <option value="1h">1小时</option>
+                                <option value="4h">4小时</option>
+                                <option value="1d">1天</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 快速设置 -->
+                    <div class="quick-settings">
+                        <h3>快速设置</h3>
+                        <div class="quick-buttons">
+                            <button class="btn btn-secondary" data-preset="uptrend">上升趋势</button>
+                            <button class="btn btn-secondary" data-preset="downtrend">下降趋势</button>
+                            <button class="btn btn-secondary" data-preset="sideways">横盘整理</button>
+                            <button class="btn btn-secondary" data-preset="volatile">高波动</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2>K线图表</h2>
+                        <div class="chart-controls">
+                            <button id="zoom-in" class="btn btn-icon">🔍+</button>
+                            <button id="zoom-out" class="btn btn-icon">🔍-</button>
+                            <button id="reset-zoom" class="btn btn-icon">⟲</button>
+                            <button id="export-chart" class="btn btn-icon">💾</button>
+                        </div>
+                    </div>
+                    <div id="main-chart" class="chart"></div>
+                </div>
+
+                <!-- 指标图表 -->
+                <div class="indicator-container">
+                    <div class="chart-header">
+                        <h3>MACD指标</h3>
+                    </div>
+                    <div id="macd-chart" class="chart-small"></div>
+                </div>
+            </div>
+
+            <!-- 模式生成面板 -->
+            <div id="patterns-panel" class="panel">
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h2>技术分析模式</h2>
+                        <button id="generate-pattern-btn" class="btn btn-primary">
+                            <span class="btn-icon">🎯</span>
+                            生成模式
+                        </button>
+                    </div>
+                    
+                    <div class="pattern-grid">
+                        <div class="pattern-card" data-pattern="double_top">
+                            <div class="pattern-icon">📈</div>
+                            <h3>双顶模式</h3>
+                            <p>经典反转模式，价格形成两个相近的高点</p>
+                        </div>
+                        
+                        <div class="pattern-card" data-pattern="double_bottom">
+                            <div class="pattern-icon">📉</div>
+                            <h3>双底模式</h3>
+                            <p>底部反转模式，价格形成两个相近的低点</p>
+                        </div>
+                        
+                        <div class="pattern-card" data-pattern="head_shoulders">
+                            <div class="pattern-icon">🏔️</div>
+                            <h3>头肩顶</h3>
+                            <p>三峰模式，中间峰值最高，两侧峰值较低</p>
+                        </div>
+                    </div>
+                    
+                    <div class="trend-options">
+                        <h3>趋势类型</h3>
+                        <div class="trend-buttons">
+                            <button class="btn trend-btn" data-trend="up">
+                                <span class="trend-icon">↗️</span>
+                                上升趋势
+                            </button>
+                            <button class="btn trend-btn" data-trend="down">
+                                <span class="trend-icon">↘️</span>
+                                下降趋势
+                            </button>
+                            <button class="btn trend-btn" data-trend="sideways">
+                                <span class="trend-icon">→</span>
+                                横盘整理
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-chart-container">
+                    <div class="chart-header">
+                        <h2>模式图表</h2>
+                    </div>
+                    <div id="pattern-chart" class="chart"></div>
+                </div>
+            </div>
+
+            <!-- 设置面板 -->
+            <div id="settings-panel" class="panel">
+                <div class="settings-container">
+                    <h2>系统设置</h2>
+                    
+                    <div class="settings-section">
+                        <h3>显示设置</h3>
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="show-fenxing" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>显示分型标记</span>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="show-strokes" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>显示笔线段</span>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="show-centers" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>显示中枢区域</span>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <label class="switch">
+                                <input type="checkbox" id="show-divergence" checked>
+                                <span class="slider"></span>
+                            </label>
+                            <span>显示背驰信号</span>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>主题设置</h3>
+                        <div class="theme-options">
+                            <button class="theme-btn active" data-theme="light">
+                                <span class="theme-preview light-theme"></span>
+                                亮色主题
+                            </button>
+                            <button class="theme-btn" data-theme="dark">
+                                <span class="theme-preview dark-theme"></span>
+                                暗色主题
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-section">
+                        <h3>性能设置</h3>
+                        <div class="setting-item">
+                            <label for="animation-speed">动画速度</label>
+                            <select id="animation-speed">
+                                <option value="fast">快速</option>
+                                <option value="normal" selected>正常</option>
+                                <option value="slow">缓慢</option>
+                                <option value="none">无动画</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- 侧边分析面板 -->
+        <aside class="sidebar">
+            <div class="analysis-info">
+                <h3>分析结果</h3>
+                <div id="analysis-summary" class="summary-container">
+                    <div class="summary-item">
+                        <span class="label">K线数量:</span>
+                        <span class="value" id="kline-count-display">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">分型数量:</span>
+                        <span class="value" id="fenxing-count-display">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">笔数量:</span>
+                        <span class="value" id="stroke-count-display">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">中枢数量:</span>
+                        <span class="value" id="center-count-display">-</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="label">背驰信号:</span>
+                        <span class="value" id="divergence-count-display">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quality-info">
+                <h3>分析质量</h3>
+                <div id="quality-metrics" class="quality-container">
+                    <div class="quality-item">
+                        <span class="label">整体评分:</span>
+                        <div class="progress-bar">
+                            <div class="progress" id="overall-score"></div>
+                        </div>
+                    </div>
+                    <div class="quality-item">
+                        <span class="label">数据质量:</span>
+                        <div class="progress-bar">
+                            <div class="progress" id="data-quality"></div>
+                        </div>
+                    </div>
+                    <div class="quality-item">
+                        <span class="label">分型质量:</span>
+                        <div class="progress-bar">
+                            <div class="progress" id="fenxing-quality"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recommendations">
+                <h3>优化建议</h3>
+                <div id="recommendations-list" class="recommendations-container">
+                    <p class="no-data">暂无建议</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 加载指示器 -->
+        <div id="loading" class="loading-overlay">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>正在分析中...</p>
+            </div>
+        </div>
+
+        <!-- 状态栏 -->
+        <footer class="status-bar">
+            <div class="status-info">
+                <span id="status-text">就绪</span>
+                <span class="separator">|</span>
+                <span id="last-update">未更新</span>
+            </div>
+            <div class="status-actions">
+                <button id="clear-data" class="btn btn-small">清除数据</button>
+                <button id="export-data" class="btn btn-small">导出数据</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/api.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
